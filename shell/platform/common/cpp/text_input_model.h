@@ -8,7 +8,10 @@
 #include <memory>
 #include <string>
 
+#include "flutter/shell/platform/common/cpp/text_range.h"
+
 namespace flutter {
+
 // Handles underlying text input state, using a simple ASCII model.
 //
 // Ignores special states like "insert mode" for now.
@@ -103,33 +106,20 @@ class TextInputModel {
   int GetCursorOffset() const;
 
   // The position where the selection starts.
-  int selection_base() const {
-    return static_cast<int>(selection_base_ - text_.begin());
-  }
+  int selection_base() const { return selection_.base(); }
 
   // The position of the cursor.
-  int selection_extent() const {
-    return static_cast<int>(selection_extent_ - text_.begin());
-  }
+  int selection_extent() const { return selection_.extent(); }
 
  private:
-  void DeleteSelected();
+  // Deletes the current selection, if any.
+  //
+  // Returns true if any text is deleted. The selection base and extent are
+  // reset to the start of the selected range.
+  bool DeleteSelected();
 
   std::u16string text_;
-  std::u16string::iterator selection_base_;
-  std::u16string::iterator selection_extent_;
-
-  // Returns the left hand side of the selection.
-  std::u16string::iterator selection_start() {
-    return selection_base_ < selection_extent_ ? selection_base_
-                                               : selection_extent_;
-  }
-
-  // Returns the right hand side of the selection.
-  std::u16string::iterator selection_end() {
-    return selection_base_ > selection_extent_ ? selection_base_
-                                               : selection_extent_;
-  }
+  TextRange selection_ = TextRange(0);
 };
 
 }  // namespace flutter
